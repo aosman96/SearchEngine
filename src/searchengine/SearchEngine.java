@@ -17,10 +17,21 @@ import java.util.Set;
  * @author ahmos
  */
 class Carawler{
-
+            //this is the links visited
             Set<String> pagesVisited = new HashSet<String>() ;
+            //this is the links is going to be visited
             List<String> pagesToVisit = new LinkedList<String>();
+            // html pages of the visited links 
             List<HtmlPage> pages = new LinkedList<HtmlPage>();
+            String Kamal = new String();
+
+    public List<HtmlPage> getPages() {
+        return pages;
+    }
+
+    public void setPages(List<HtmlPage> pages) {
+        this.pages = pages;
+    }
             HashMap<String,ArrayList> robotTxtFiles = new HashMap<String,ArrayList>();
            public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
 
