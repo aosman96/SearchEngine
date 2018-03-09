@@ -20,6 +20,7 @@ class Carawler{
 
             Set<String> pagesVisited = new HashSet<String>() ;
             List<String> pagesToVisit = new LinkedList<String>();
+            List<HtmlPage> pages = new LinkedList<HtmlPage>();
             HashMap<String,ArrayList> robotTxtFiles = new HashMap<String,ArrayList>();
            public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
 

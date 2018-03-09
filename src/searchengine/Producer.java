@@ -107,6 +107,7 @@ public class Producer implements Runnable {
                 }
                 this.carawler.getPagesVisited().add(currentUrl);
                 this.carawler.getPagesToVisit().addAll(consumer.getLinks());
+                this.carawler.getPages().add(consumer.getpage());
                 System.out.println(Thread.currentThread().getName() + " add a link to pagesVisited " + currentUrl + "now it have size" + carawler.getPagesVisited().size());
                 System.out.println(Thread.currentThread().getName() + " add pages to pagestovisit " + carawler.getPagesToVisit().size());
 
