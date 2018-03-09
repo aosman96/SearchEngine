@@ -68,12 +68,13 @@ public class Producer implements Runnable {
 
     public void search() {
 
-        while (this.carawler.getPagesVisited().size() < 5) {
+        while (true) {
             String currentUrl = null;
             Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
             String host = "";
             synchronized (carawler) {
-                while (this.carawler.getPagesToVisit().isEmpty()) {
+      
+   while (this.carawler.getPagesToVisit().isEmpty()) {
 
                     try {
                         carawler.wait();
@@ -83,6 +84,7 @@ public class Producer implements Runnable {
                 }
 
                 currentUrl = this.nextUrl(host);
+
                 Robot robot = new Robot();
                 if (currentUrl == null || !robot.isSafeUrl(currentUrl, "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0", carawler)) {
                     continue;
@@ -105,8 +107,14 @@ public class Producer implements Runnable {
                     carawler.getRobotTxtFiles().put(host, disallowList);
                 }
                 }
+                   if(carawler.getPagesVisited().size() >= carawler.getNumberOfPages())
+    {             
+      System.out.println(Thread.currentThread().getName()+"   has finished it's work with page size = "+this.carawler.getPagesVisited().size() );
+       return ;             
+    } 
                 this.carawler.getPagesVisited().add(currentUrl);
                 this.carawler.getPagesToVisit().addAll(consumer.getLinks());
+                if(consumer.getpage()!=null)
                 this.carawler.getPages().add(consumer.getpage());
                 System.out.println(Thread.currentThread().getName() + " add a link to pagesVisited " + currentUrl + "now it have size" + carawler.getPagesVisited().size());
                 System.out.println(Thread.currentThread().getName() + " add pages to pagestovisit " + carawler.getPagesToVisit().size());

@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -23,10 +25,18 @@ class Carawler{
             List<String> pagesToVisit = new LinkedList<String>();
             // html pages of the visited links 
             List<HtmlPage> pages = new LinkedList<HtmlPage>();
-            String Kamal = new String();
+            int numberOfPages = 5;
 
     public List<HtmlPage> getPages() {
         return pages;
+    }
+
+    public int getNumberOfPages() {
+        return numberOfPages;
+    }
+
+    public void setNumberOfPages(int numberOfPages) {
+        this.numberOfPages = numberOfPages;
     }
 
     public void setPages(List<HtmlPage> pages) {
@@ -72,9 +82,9 @@ public class SearchEngine {
     
             Carawler carawler =new Carawler() ;
               carawler.getPagesToVisit().add("https://en.wikipedia.org");
-                 carawler.getPagesToVisit().add("http://www.baeldung.com/");
-                    carawler.getPagesToVisit().add("https://www.youtube.com/watch?v=-VgQBc49HU8&index=27&list=RDMM8gDlG2i_U_4");
-                       carawler.getPagesToVisit().add("https://beginnersbook.com/2013/12/hashmap-in-java-with-example/");
+                 carawler.getPagesToVisit().add("http://baeldung.com");
+                    carawler.getPagesToVisit().add("https://youtube.com/watch?v=-VgQBc49HU8&index=27&list=RDMM8gDlG2i_U_4");
+                       carawler.getPagesToVisit().add("https://beginnersbook.com/2013/12/hashmap-in-java-with-example");
             Thread producer = new Thread(new Producer(carawler));
            Thread producer2 = new Thread(new Producer(carawler));
            Thread producer3 = new  Thread(new Producer(carawler));
@@ -83,8 +93,21 @@ public class SearchEngine {
             producer2.start();
             producer3.start();
               producer4.start();
-        
+        try {
+            producer.join();
+            producer2.join();
+            producer3.join();
+            producer4.join();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
          System.out.println("done");
+         System.out.println("SIZEEEEEEEEEEEEEEEEEEEE " + carawler.getPages().size());
+          System.out.println("SIZEEEEEEEEEEEEEEEEEEEE 2 " + carawler.getPagesVisited().size());
+            for (HtmlPage Page : carawler.getPages())
+            {
+                System.out.println("URL" + Page.getDomainUrlObject().getDomainUrl());
+            }
     
     }
     

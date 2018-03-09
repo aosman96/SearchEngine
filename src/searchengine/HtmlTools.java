@@ -9,6 +9,7 @@ package searchengine;
  *
  * @author ahmos
  */
+// handling the case www in the first 
 public class HtmlTools {
 
     public static String fixUrl(String inUrl, DomainUrl domain) {
@@ -28,6 +29,10 @@ public class HtmlTools {
         if(url.contains("#"))
         {
         url = url.substring(0, url.indexOf("#")-1);
+        }
+        if(url.contains("www"))
+        {
+        url = url.substring(0,url.indexOf("www")-1)+ url.substring(url.indexOf("www")+1);
         }
         return url;
     }

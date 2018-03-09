@@ -23,4 +23,15 @@ public class HtmlPage {
         this.created = created;
     }
     
+
+  
+    public String getHtml()
+    {
+        return Html;
+    }
+
+    public DomainUrl getDomainUrlObject()
+    {
+        return domainUrl;
+    }
 }
