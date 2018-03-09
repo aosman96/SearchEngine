@@ -20,9 +20,7 @@ public class HtmlTools {
                 } else {
                     url = domain.getDomainUrl().concat("/" + inUrl);
                 }
-            } else {
-                url = inUrl;
-            }
+            } 
         }
         if(url.endsWith("/")){
         url = url.substring(0,url.length()-1);

@@ -68,7 +68,7 @@ public class Producer implements Runnable {
 
     public void search() {
 
-        while (this.carawler.getPagesVisited().size() < 6000) {
+        while (this.carawler.getPagesVisited().size() < 5) {
             String currentUrl = null;
             Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
             String host = "";
