@@ -22,10 +22,11 @@ public final class SQLiteDBHelper
         }
         
         
-        //TODO: MEMORY LOAD DB
+        
         //c = DriverManager.getConnection("jdbc:sqlite:test.db:memory");
-        //Starts Connection with an existing DB name, if it does not exist it creates the DB.
-        public void StartConnection(String path)
+        //Starts Connection with an existing DB name, if it does not exist it creates the DB. (deprecated)
+        //Now starts connection with an in-memory DB.
+        public void StartConnection()
         {
             try 
             {
@@ -74,6 +75,7 @@ public final class SQLiteDBHelper
             try {
                 Statement stmt = c.createStatement();
                 stmt.executeUpdate("restore from backup.db");
+                System.out.println("Restored database from backup.db");
             } catch (SQLException ex) {
                 Logger.getLogger(SQLiteDBHelper.class.getName()).log(Level.SEVERE, null, ex);
             }

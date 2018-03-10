@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.sql.*;
+import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +79,7 @@ public class SearchEngine {
         //PagesDownloader PD = new PagesDownloader(carawler, false);
         SQLiteDBHelper sqlite = new SQLiteDBHelper();
         
-        sqlite.StartConnection("test.db"); //NAME TO BE CHANGED
+        sqlite.StartConnection(); //NAME TO BE CHANGED
         
         
         producer.start();
@@ -98,6 +99,15 @@ public class SearchEngine {
             Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        //Restore database from file to memory
+        sqlite.Restore();
+        
+        //Timer that calls BackupTask which backups the in-memory database to backup.db every given time (now 5 seconds).
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new BackupTask(sqlite), 0, 5000); //Change time period as you like.
+        
+        
+        
        /*
         String query = "CREATE TABLE crawler (\n" +
                         "    ID       INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -106,16 +116,15 @@ public class SearchEngine {
                         ");";
         
         sqlite.CreateTable(query);
+        */
         try {
             sqlite.InsertPagesBatch(carawler.getPages());
             //sqlite.InsertPages(carawler.getPages());
             } catch (SQLException ex) {
             Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
-        */
-       
-        sqlite.Restore();
         
+       
         
         /* FOR TESTING THAT DATABASE STILL HAS DATA
         ResultSet rs  = sqlite.SelectAll("crawler");
