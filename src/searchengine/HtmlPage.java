@@ -12,15 +12,32 @@ import java.util.Date;
  * @author ahmos
  */
 public class HtmlPage {
-    private int id ;
+    private static int id = 0; //for file numbers
     private String Html;
     private DomainUrl domainUrl ;
     private Date created ;
 
     public HtmlPage(String Html, DomainUrl domainUrl, Date created) {
+        this.id++;
         this.Html = Html;
         this.domainUrl = domainUrl;
         this.created = created;
+    }
+    
+    
+    public int getID()
+    {
+        return id;
+    }
+    
+    public String getHtml()
+    {
+        return Html;
+    }
+    
+    public DomainUrl getDomainUrlObject()
+    {
+        return domainUrl;
     }
     
 }

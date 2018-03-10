@@ -1,0 +1,2 @@
+//to attach in-memory database to a name using sqlite CLI
+ATTACH ':memory:' AS [NAME];

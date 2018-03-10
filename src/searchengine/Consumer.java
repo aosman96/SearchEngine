@@ -65,7 +65,8 @@ public class Consumer {
                 for (Element e : hrefs) {
                     String anchor = e.attr("href").trim();
                     anchor = HtmlTools.fixUrl(anchor, domainUrl); //de 3lshan lw nafs el page teb2a et7t mara wa7da
-                    anchors.add(anchor);
+                    if(anchor!="")
+                        anchors.add(anchor);
 
                 }
             } else {

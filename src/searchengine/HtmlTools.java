@@ -20,16 +20,22 @@ public class HtmlTools {
                 } else {
                     url = domain.getDomainUrl().concat("/" + inUrl);
                 }
-            } else {
+            } 
+            else {
                 url = inUrl;
             }
         }
+        
         if(url.endsWith("/")){
         url = url.substring(0,url.length()-1);
         }
         if(url.contains("#"))
         {
         url = url.substring(0, url.indexOf("#")-1);
+        }
+        if(url.contains("www"))
+        {
+        url = url.substring(0,url.indexOf("www")-1)+ url.substring(url.indexOf("www")+1);
         }
         return url;
     }

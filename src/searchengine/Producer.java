@@ -18,19 +18,25 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.sql.*;
+
 /**
  *
  * @author ahmos
  */
 public class Producer implements Runnable {
 
+    
+    
+    
     private final int numberOfPages = 5000;
     private Carawler carawler;
 
     public Producer(Carawler carawler) {
         this.carawler = carawler;
+        
     }
-
+    
     private boolean verifyUrl(String url, String host) {
 // Only allow HTTP URLs.
         if (!url.toLowerCase().startsWith("http://")) {
@@ -67,8 +73,9 @@ public class Producer implements Runnable {
     }
 
     public void search() {
-
-        while (this.carawler.getPagesVisited().size() < 6000) {
+        
+        //NOTE: CHANGE BACK TO 5000
+        while (this.carawler.getPagesVisited().size() < 5) {
             String currentUrl = null;
             Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
             String host = "";
@@ -107,7 +114,11 @@ public class Producer implements Runnable {
                 }
                 this.carawler.getPagesVisited().add(currentUrl);
                 this.carawler.getPagesToVisit().addAll(consumer.getLinks());
-                this.carawler.getPages().add(consumer.getpage());
+                
+                
+                if(consumer.getpage()!=null)
+                    this.carawler.getPages().add(consumer.getpage());
+                
                 System.out.println(Thread.currentThread().getName() + " add a link to pagesVisited " + currentUrl + "now it have size" + carawler.getPagesVisited().size());
                 System.out.println(Thread.currentThread().getName() + " add pages to pagestovisit " + carawler.getPagesToVisit().size());
 
@@ -134,7 +145,6 @@ public class Producer implements Runnable {
 
     @Override
     public void run() {
-
-        search();
+            search();
     }
 }
