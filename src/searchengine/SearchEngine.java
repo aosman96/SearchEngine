@@ -98,12 +98,13 @@ public class SearchEngine {
             Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-       
+       /*
         String query = "CREATE TABLE crawler (\n" +
                         "    ID       INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                         "    URL      STRING  UNIQUE ON CONFLICT IGNORE,\n" +
                         "    Document STRING\n" +
                         ");";
+        
         sqlite.CreateTable(query);
         try {
             sqlite.InsertPagesBatch(carawler.getPages());
@@ -111,9 +112,23 @@ public class SearchEngine {
             } catch (SQLException ex) {
             Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
+        */
+       
+        sqlite.Restore();
         
-       
-       
+        
+        /* FOR TESTING THAT DATABASE STILL HAS DATA
+        ResultSet rs  = sqlite.SelectAll("crawler");
+        try {
+            while(rs.next())
+            {
+                System.out.println("tttttttttttttttttttttttttttt " + rs.getString("URL"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        */
+        
         
          System.out.println("SIZEEEEEEEEEEEEEEEEEEEE " + carawler.getPages().size());
         for (HtmlPage Page : carawler.getPages()) 

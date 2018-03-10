@@ -56,6 +56,28 @@ public final class SQLiteDBHelper
             System.out.println("Created table successfully");
         }
         
+        //Backups in-memory database to a file.
+        public void Backup()
+        {
+            try {
+                Statement stmt = c.createStatement();
+                stmt.executeUpdate("backup to backup.db");
+            } catch (SQLException ex) {
+                Logger.getLogger(SQLiteDBHelper.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        
+        //Restores in-memory database from a file.
+        public void Restore()
+        {
+            try {
+                Statement stmt = c.createStatement();
+                stmt.executeUpdate("restore from backup.db");
+            } catch (SQLException ex) {
+                Logger.getLogger(SQLiteDBHelper.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         
         //Returns all records from a table.
         public ResultSet SelectAll(String tableName)
