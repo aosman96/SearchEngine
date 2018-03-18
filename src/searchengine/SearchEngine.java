@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.util.Pair;
 
 /**
  *
@@ -25,6 +26,18 @@ class Carawler{
             List<String> pagesToVisit = new LinkedList<String>();
             // html pages of the visited links 
             List<HtmlPage> pages = new LinkedList<HtmlPage>();
+            //storing the rank of each page 
+            HashMap<String,ArrayList<Integer>> linkstopage=  new HashMap<String,ArrayList<Integer>>();
+
+    public HashMap<String, ArrayList<Integer>> getLinkstopage() {
+        return linkstopage;
+    }
+
+    public void setLinkstopage(HashMap<String, ArrayList<Integer>> linkstopage) {
+        this.linkstopage = linkstopage;
+    }
+
+
             int numberOfPages = 5;
 
     public List<HtmlPage> getPages() {
@@ -107,6 +120,11 @@ public class SearchEngine {
             for (HtmlPage Page : carawler.getPages())
             {
                 System.out.println("URL" + Page.getDomainUrlObject().getDomainUrl());
+            }
+            for ( String link : carawler.linkstopage.keySet())
+            {
+                
+                System.out.println("link : " + link+ "has input links" +carawler.linkstopage.get(link).get(0)+ " has output links" +carawler.linkstopage.get(link).get(1));
             }
     
     }

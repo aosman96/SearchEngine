@@ -24,10 +24,18 @@ import java.util.logging.Logger;
  */
 public class Producer implements Runnable {
 
-    private final int numberOfPages = 5000;
+    private final int numberOfPages = 5;
     private Carawler carawler;
 
     public Producer(Carawler carawler) {
+        this.carawler = carawler;
+    }
+
+    public Carawler getCarawler() {
+        return carawler;
+    }
+
+    public void setCarawler(Carawler carawler) {
         this.carawler = carawler;
     }
 
@@ -70,7 +78,7 @@ public class Producer implements Runnable {
 
         while (true) {
             String currentUrl = null;
-            Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
+            Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0",this);
             String host = "";
             synchronized (carawler) {
       
