@@ -23,12 +23,18 @@ public class HtmlTools {
                 }
             } 
         }
-        if(url.endsWith("/")){
-        url = url.substring(0,url.length()-1);
+       
+          if(url.contains("?pagesize="))
+        {
+             url = url.substring(0,url.indexOf("?pagesize=")-1);
         }
         if(url.contains("#"))
         {
         url = url.substring(0, url.indexOf("#")-1);
+        }
+
+        if(url.endsWith("/")){
+        url = url.substring(0,url.length()-1);
         }
         if(url.contains("www"))
         {

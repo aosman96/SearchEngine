@@ -21,28 +21,23 @@ import javafx.util.Pair;
  */
 class Carawler{
             //this is the links visited
-            Set<String> pagesVisited = new HashSet<String>() ;
+            Set<webPage> pagesVisited = new HashSet<webPage>() ;
             //this is the links is going to be visited
-            List<String> pagesToVisit = new LinkedList<String>();
+            List<webPage> pagesToVisit = new LinkedList<webPage>();
             // html pages of the visited links 
-            List<HtmlPage> pages = new LinkedList<HtmlPage>();
+           // List<HtmlPage> pages = new LinkedList<HtmlPage>(); //da ana haselooooo we ha5leha gowa el pages  
             //storing the rank of each page 
-            HashMap<String,ArrayList<Integer>> linkstopage=  new HashMap<String,ArrayList<Integer>>();
+          //  HashMap<String,ArrayList<Integer>> linksToPage=  new HashMap<String,ArrayList<Integer>>();
+               HashMap<String,ArrayList> robotTxtFiles = new HashMap<String,ArrayList>();
+      //     public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
 
-    public HashMap<String, ArrayList<Integer>> getLinkstopage() {
-        return linkstopage;
-    }
+   
 
-    public void setLinkstopage(HashMap<String, ArrayList<Integer>> linkstopage) {
-        this.linkstopage = linkstopage;
-    }
+            int numberOfPages = 50;
 
-
-            int numberOfPages = 5;
-
-    public List<HtmlPage> getPages() {
-        return pages;
-    }
+ //   public List<HtmlPage> getPages() {
+   //     return pages;
+    //}
 
     public int getNumberOfPages() {
         return numberOfPages;
@@ -52,15 +47,12 @@ class Carawler{
         this.numberOfPages = numberOfPages;
     }
 
-    public void setPages(List<HtmlPage> pages) {
-        this.pages = pages;
-    }
-            HashMap<String,ArrayList> robotTxtFiles = new HashMap<String,ArrayList>();
-           public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
+   // public void setPages(List<HtmlPage> pages) {
+    //    this.pages = pages;
+    //}
+         
 
-    public HashMap<String, Integer> getDomaindepth() {
-        return domaindepth;
-    }
+   
             
     public HashMap<String, ArrayList> getRobotTxtFiles() {
         return robotTxtFiles;
@@ -68,65 +60,123 @@ class Carawler{
 
     
 
-    public Set<String> getPagesVisited() {
+    public Set<webPage> getPagesVisited() {
         return pagesVisited;
     }
 
-    public void setPagesVisited(Set<String> pagesVisited) {
+    public void setPagesVisited(Set<webPage> pagesVisited) {
         this.pagesVisited = pagesVisited;
     }
 
-    public List<String> getPagesToVisit() {
+    public List<webPage> getPagesToVisit() {
         return pagesToVisit;
     }
 
-    public void setPagesToVisit(List<String> pagesToVisit) {
+    public void setPagesToVisit(List<webPage> pagesToVisit) {
         this.pagesToVisit = pagesToVisit;
     }
-            
+    public boolean isInVisited(webPage link)
+    {
+     for( webPage w :pagesVisited)
+    {
+    if (w.equals(link))
+    {
+        System.out.println("this link comes before : "+ link.Url);
+    return true;
+    }
+    
+    }
+     return false ;
+    }
+    public boolean updateVistedList(webPage link ,webPage parent)
+    {
+    
+    for( webPage w :pagesVisited)
+    {
+        if(w.getUrl() != null && link != null)
+    if (w.equals(link))
+    {
+   w.getParentPages().add(parent);
+    return true;
+    }
+    }
+    return false ;
+    }
+    
+    public boolean updateToVistedList(webPage link,webPage parent)
+    {
+    
+    for( webPage w :pagesToVisit)
+    {
+    if (w.equals(link))
+    {
+    w.getParentPages().add(parent);
+    return true;
+    }
+    }
+    return false ;
+    }            
 }
 public class SearchEngine {
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // TODO code application logic here
-    
+  //  while(true)
+    {
             Carawler carawler =new Carawler() ;
-              carawler.getPagesToVisit().add("https://en.wikipedia.org");
-                 carawler.getPagesToVisit().add("http://baeldung.com");
-                    carawler.getPagesToVisit().add("https://youtube.com/watch?v=-VgQBc49HU8&index=27&list=RDMM8gDlG2i_U_4");
-                       carawler.getPagesToVisit().add("https://beginnersbook.com/2013/12/hashmap-in-java-with-example");
+            webPage webpage1 = new webPage();
+            webpage1.setUrl("https://wikipedia.org/");
+            webpage1.setRank(1/4);
+            webPage webpage2 = new webPage();
+            webpage2.setUrl("https://yahoo.com");
+            webpage2.setRank(1/4);
+            webPage webpage3 = new webPage();
+            webpage3.setUrl("https://twitter.com");
+            webpage3.setRank(1/4);
+            webPage webpage4 = new webPage();
+            webpage4.setUrl(" https://youtube.com/testtube");
+            webpage4.setRank(1/4);
+            
+            
+            
+             carawler.getPagesToVisit().add(webpage1);
+                carawler.getPagesToVisit().add(webpage2);
+                   carawler.getPagesToVisit().add(webpage3);
+                    carawler.getPagesToVisit().add(webpage4);
             Thread producer = new Thread(new Producer(carawler));
-           Thread producer2 = new Thread(new Producer(carawler));
+            Thread producer2 = new Thread(new Producer(carawler));
            Thread producer3 = new  Thread(new Producer(carawler));
                       Thread producer4 = new  Thread(new Producer(carawler));
-           producer.start();
-            producer2.start();
+       producer.start();
+           Thread.sleep(100);
+           producer2.start();
+                       Thread.sleep(100);
             producer3.start();
+                       Thread.sleep(100);
               producer4.start();
         try {
-            producer.join();
-            producer2.join();
+              producer.join();
+              producer2.join();
             producer3.join();
             producer4.join();
         } catch (InterruptedException ex) {
             Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
          System.out.println("done");
-         System.out.println("SIZEEEEEEEEEEEEEEEEEEEE " + carawler.getPages().size());
+      
           System.out.println("SIZEEEEEEEEEEEEEEEEEEEE 2 " + carawler.getPagesVisited().size());
-            for (HtmlPage Page : carawler.getPages())
+            for (webPage w :carawler.pagesVisited)
             {
-                System.out.println("URL" + Page.getDomainUrlObject().getDomainUrl());
+            System.out.println( w.Url+ "     i have "+w.getParentPages().size()+" Pointing to me and " + w.getChildPages().size()+" pointing to them" + "the last date modified= "+w.getLastModification());
+            
             }
-            for ( String link : carawler.linkstopage.keySet())
-            {
-                
-                System.out.println("link : " + link+ "has input links" +carawler.linkstopage.get(link).get(0)+ " has output links" +carawler.linkstopage.get(link).get(1));
-            }
-    
+          //  webPage e ;
+            //        e = carawler.getPagesVisited().iterator().next();
+                    
+          //  System.out.println(e.getPage().getHtml());
     }
-    
+    }
 }

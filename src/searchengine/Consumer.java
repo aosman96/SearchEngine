@@ -30,7 +30,7 @@ import org.jsoup.select.Elements;
  */
 public class Consumer   {
 
-    private List<String> anchors = new LinkedList<String>();
+    private List<webPage> anchors = new LinkedList<webPage>();
     private HtmlPage page;
     private Connection connection;
     private Response response;
@@ -42,9 +42,9 @@ public class Consumer   {
         this.producer = producer ;
     }
 
-    public boolean Start(String crawlDomain) {
+    public boolean Start(webPage crawlDomain) {
 
-        DomainUrl domainUrl = new DomainUrl(Hasher.toSha256(crawlDomain), crawlDomain);
+        DomainUrl domainUrl = new DomainUrl(Hasher.toSha256(crawlDomain.Url), crawlDomain.Url);
 
         try {
             connection = Jsoup.connect(domainUrl.getDomainUrl()).userAgent(userAgent)
@@ -56,13 +56,14 @@ public class Consumer   {
             String contentType ;
            
             contentType = response.contentType();
-
+                String LastModified =response.header("Last-Modified");
             if (contentType == null )
                     return false ;
             
             if (contentType.contains("text/html")) {
                 Document doc = connection.get();
                 page = new HtmlPage(doc.html(), domainUrl, new Date());
+                
 
                 Elements hrefs = doc.select("a");
                 synchronized (this.producer.getCarawler())
@@ -71,45 +72,56 @@ public class Consumer   {
                 for (Element e : hrefs) {
                     String anchor = e.attr("href").trim();
                     anchor = HtmlTools.fixUrl(anchor, domainUrl); //de 3lshan lw nafs el page teb2a et7t mara wa7da
-                    if(anchor!="")
+                    if(anchor!="" && anchor!=null)
                     {
-                    anchors.add(anchor);
-                    if( producer.getCarawler().linkstopage.get(anchor)!= null)
-                        producer.getCarawler().linkstopage.get(anchor).set(0, producer.getCarawler().linkstopage.get(anchor).get(0)+1);
+                    webPage temp = new webPage() ;
+                    temp.setUrl(anchor);
+                  if( ! (producer.getCarawler().updateToVistedList(temp,crawlDomain) ||
+                    producer.getCarawler().updateVistedList(temp,crawlDomain)))
+                      temp.Rank=0 ;
+                      temp.ParentPages.add(crawlDomain);
+                      anchors.add(temp);
+
+                   
+                  /*  if( producer.getCarawler().getPagesVisited().contains()!= null)
+                        producer.getCarawler().linksToPage.get(anchor).set(0, producer.getCarawler().linksToPage.get(anchor).get(0)+1);
                     else
                     {
-                    producer.getCarawler().linkstopage.put(anchor, new ArrayList <Integer>());
-                    producer.getCarawler().linkstopage.get(anchor).add(1);
-                    producer.getCarawler().linkstopage.get(anchor).add(0);
+                    producer.getCarawler().linksToPage.put(anchor, new ArrayList <Integer>());
+                    producer.getCarawler().linksToPage.get(anchor).add(1);
+                    producer.getCarawler().linksToPage.get(anchor).add(0);
                     
-                    }
+                    }*/
                     
-                    }
-                     if( producer.getCarawler().linkstopage.get(crawlDomain)== null)
+                    }/*
+                     if( producer.getCarawler().linksToPage.get(crawlDomain)== null)
                      {
-                     producer.getCarawler().linkstopage.put(crawlDomain, new ArrayList <Integer>());
+                     producer.getCarawler().linksToPage.put(crawlDomain, new ArrayList <Integer>());
                      
-                     producer.getCarawler().linkstopage.get(crawlDomain).add(0);
-                     producer.getCarawler().linkstopage.get(crawlDomain).add(hrefs.size());
+                     producer.getCarawler().linksToPage.get(crawlDomain).add(0);
+                     producer.getCarawler().linksToPage.get(crawlDomain).add(hrefs.size());
                      }
                      else
-                    producer.getCarawler().linkstopage.get(crawlDomain).set(1, hrefs.size());
+                    producer.getCarawler().linksToPage.get(crawlDomain).set(1, hrefs.size());*/
                 }
+                                      crawlDomain.setLastModification(LastModified);
+                      System.out.println(LastModified);
                 }
+                        return true;
             } else {
                 return false;
             }
         } catch (IOException ex) {
             // 3lshan lw 4xx eb2a mayt3mlosh save lw 5xx et3mlo save we ab2a agelo ba3den
-
         }
-        return true;
+return false ;
     }
 
 
-    public List<String> getLinks() {
+    public List<webPage> getLinks() {
         return this.anchors;
     }
+    
 
     public HtmlPage getpage() {
         return page;

@@ -5,18 +5,7 @@
  */
 package searchengine;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -24,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class Producer implements Runnable {
 
-    private final int numberOfPages = 5;
+    private final int numberOfPages = 10;
     private Carawler carawler;
 
     public Producer(Carawler carawler) {
@@ -39,45 +28,11 @@ public class Producer implements Runnable {
         this.carawler = carawler;
     }
 
-    private boolean verifyUrl(String url, String host) {
-// Only allow HTTP URLs.
-        if (!url.toLowerCase().startsWith("http://")) {
-            if (!url.toLowerCase().startsWith("https://")) {
-                return false;
-            }
-        }
-// Verify format of URL.
-        URL verifiedUrl = null;
-        try {
-
-            verifiedUrl = new URL(url);
-            host = verifiedUrl.getHost();
-            if (!carawler.domaindepth.containsKey(host)) {
-                carawler.domaindepth.put(host, 1);
-                return true;
-            }
-            int count = carawler.domaindepth.get(host);
-            //verfiy for domain tree
-
-            if (count < 20) {
-                count++;
-                carawler.domaindepth.replace(host, count);
-                return true;
-            } else if (count >= 20) {
-                return false;
-            }
-
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
-    }
 
     public void search() {
 
         while (true) {
-            String currentUrl = null;
+            webPage currentUrl = null;
             Consumer consumer = new Consumer("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0",this);
             String host = "";
             synchronized (carawler) {
@@ -87,20 +42,24 @@ public class Producer implements Runnable {
                     try {
                         carawler.wait();
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(Producer.class.getName()).log(Level.SEVERE, null, ex);
+                        //Logger.getLogger(Producer.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
-                currentUrl = this.nextUrl(host);
-
-                Robot robot = new Robot();
-                if (currentUrl == null || !robot.isSafeUrl(currentUrl, "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0", carawler)) {
+            }
+                         synchronized (carawler) {
+                        currentUrl = this.nextUrl(host);
+                              Robot robot = new Robot();
+                if (currentUrl == null || !robot.isSafeUrl(currentUrl.Url, "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0", carawler)) {
                     continue;
+                
                 }
-
+                this.carawler.getPagesVisited().add(currentUrl);
+           System.out.println(Thread.currentThread().getName() + " add pages to pagestovisit " + carawler.getPagesToVisit().size());
             }
 
-            System.out.println("the link now is " + currentUrl);
+            System.out.println("the link now is " + currentUrl.getUrl());
+            
+               
             boolean add = consumer.Start(currentUrl);
 
             synchronized (carawler) {
@@ -120,13 +79,15 @@ public class Producer implements Runnable {
       System.out.println(Thread.currentThread().getName()+"   has finished it's work with page size = "+this.carawler.getPagesVisited().size() );
        return ;             
     } 
-                this.carawler.getPagesVisited().add(currentUrl);
-                this.carawler.getPagesToVisit().addAll(consumer.getLinks());
+         
+                    this.carawler.getPagesToVisit().addAll(consumer.getLinks());
+                currentUrl.getChildPages().addAll(consumer.getLinks());
                 if(consumer.getpage()!=null)
-                this.carawler.getPages().add(consumer.getpage());
-                System.out.println(Thread.currentThread().getName() + " add a link to pagesVisited " + currentUrl + "now it have size" + carawler.getPagesVisited().size());
-                System.out.println(Thread.currentThread().getName() + " add pages to pagestovisit " + carawler.getPagesToVisit().size());
-
+                /*    if(!carawler.getPages().contains( consumer.getpage()))
+                          this.carawler.getPages().add(consumer.getpage());
+                                                        */
+                    currentUrl.setPage(consumer.getpage());
+                System.out.println(Thread.currentThread().getName() + " add a link to pagesVisited " + currentUrl.getUrl() + "now it have size" + carawler.getPagesVisited().size());
                 carawler.notifyAll();
             }
 
@@ -134,17 +95,19 @@ public class Producer implements Runnable {
 
     }
 
-    private String nextUrl(String host) {
-        String nextUrl;
-        synchronized (carawler) {
+    private webPage nextUrl(String host) {
+        webPage nextUrl;
+        
             do {
                 if (this.carawler.getPagesToVisit().isEmpty()) {
                     return null;
                 }
                 nextUrl = this.carawler.getPagesToVisit().remove(0);
-                System.out.println("The link is searching in is" + nextUrl);
-            } while (this.carawler.pagesVisited.contains(nextUrl) || !verifyUrl(nextUrl, host));
-        }
+                System.out.println("The link is searching in " + nextUrl.Url+ "the number of to visit list"+ carawler.getPagesToVisit().size());
+            } while (this.carawler.isInVisited(nextUrl));
+          
+
+        
         return nextUrl;
     }
 
