@@ -22,33 +22,25 @@ import org.jsoup.select.Elements;
  * @author Ahmed
  */
 public class wordInfo {
-    int Freq, TotalNumberOfWords;
-    double TF;
-    ArrayList<String> IMG_URL;
-    HashMap<Integer, String> Position;
+    private int Freq, TotalNumberOfWords;
+    private double TF;
+    private HashMap <Integer, String> Position_AroundWordSentence;
     
     public wordInfo(int iTotalNumberOfWords){
         Freq = 0;
         TF = 0.0;
-        TotalNumberOfWords = iTotalNumberOfWords;     
-        IMG_URL = new ArrayList<String>();
-        Position = new HashMap<Integer, String>();
-    }
-        
-    public void addImg(String iIMG)
-    {
-        IMG_URL.add(iIMG);
+        TotalNumberOfWords = iTotalNumberOfWords;   
+        Position_AroundWordSentence = new HashMap<>();
     }
     
-    public void addPosition(int iPosition, String iText)        //iText is the 2 words before the word + word itself + 2 words after the word
+    public void addPosition(int iPosition, String aroundWordSentence)   
     {
-        Position.put(iPosition, iText);
+        Position_AroundWordSentence.put(iPosition, aroundWordSentence);
         Freq++;
         TF = (double)Freq / (double)TotalNumberOfWords;
     }
     
     public int getFreq() { return Freq; }
     public double getTF() { return TF; }
-    public ArrayList<String> getImgURL() { return IMG_URL; }
-    public HashMap<Integer, String> getPosition() { return Position; }    
+    public HashMap<Integer, String> getPosition() { return Position_AroundWordSentence; }    
 }

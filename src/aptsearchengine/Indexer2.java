@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.Set;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +25,9 @@ import org.jsoup.select.Elements;
  * @author 
  */
 
+/*
+    1) Body might be empty
+*/
 
 public class Indexer2 {
     
@@ -43,69 +49,131 @@ public class Indexer2 {
         "you've", "your", "yours", "yourself", "yourselves"
     };
     
-    private static HashMap<String, HashMap<Integer,ArrayList<Float>>> stemmedWordIndexer = new HashMap<String, HashMap<Integer,ArrayList<Float>>>();   //For stemmed words info
-    /*
-    Word1:   <URL1_ID:   [Freq, TF]>
-    Word1:   <URL2_ID:   [Freq, TF]>
-    */
-    private static HashMap<String, HashMap<Integer,ArrayList<Float>>> imagesIndexer = new HashMap<String, HashMap<Integer,ArrayList<Float>>>();
-    /*
-    title/word: <URL_ID: 
-    */
-    private static HashMap<String, HashMap<String, HashMap<Integer, wordInfo>>> originalWordIndexer = new HashMap<String, HashMap<String, HashMap<Integer, wordInfo>>>(); //For original word info
     
-    public Indexer2(){ }
+    private static HashMap<String, HashMap<Integer, Double>> OriginalWordRank = new HashMap<>(); //OriginalWord: <Url_ID: Rank>
+    private static HashMap<String, HashMap<String, HashMap<Integer, wordInfo>>> IndexInfo = new HashMap<>(); //StemmedWord: <Original: <URL_ID: WordInfo> >
+    private static HashMap<String, Integer> TagRanks = new HashMap<>();
     
-    
-    public void insertOriginalWord(String stemmedWord, String originalWord, int URLID, int TotalNumberOfWords, int position, String text)
+    public Indexer2()
     {
-        /************************************ Adding to Original HashMap ************************************/
-        //First time for stemmed word
-        if(originalWordIndexer.get(stemmedWord) == null)
-            originalWordIndexer.put(stemmedWord, new HashMap<String,HashMap<Integer, wordInfo>>());
-        //Getting the Original Word hashmap
-        HashMap<String,HashMap<Integer, wordInfo>> stemmedWordValue = originalWordIndexer.get(stemmedWord);
+        TagRanks.put("h6", 4);
+        TagRanks.put("h5", 6);
+        TagRanks.put("h4", 8);
+        TagRanks.put("h3", 10);
+        TagRanks.put("h2", 12);
+        TagRanks.put("h1", 14);
+        TagRanks.put("meta", 16);
+        TagRanks.put("title", 20);
+    }
         
-        //First time for original word
-        if(stemmedWordValue.get(originalWord) == null)
-            stemmedWordValue.put(originalWord, new HashMap<Integer,wordInfo>());
-        //Getting URLID hash map
-        HashMap<Integer,wordInfo> originalWordValue = stemmedWordValue.get(originalWord);
+    public void insertIndexInfo(String StemmedWord, String OriginalWord, int URL_ID, int Position, String AroundWordSentence, int TotalNumberOfWords)  
+    {
+        if(IndexInfo.get(StemmedWord) == null)
+            IndexInfo.put(StemmedWord, new HashMap<>());
+        HashMap <String, HashMap<Integer, wordInfo>> UrlID_WordInfo = IndexInfo.get(StemmedWord);
         
-        //First time for URLID
-        if(originalWordValue.get(URLID) == null)
-            originalWordValue.put(URLID, new wordInfo(TotalNumberOfWords));
-        //Getting word info for this url
-        wordInfo URLIDvalue = originalWordValue.get(URLID);
+        if(UrlID_WordInfo.get(OriginalWord) == null)
+            UrlID_WordInfo.put(OriginalWord, new HashMap<>());
+        HashMap <Integer, wordInfo> WordsInfoMap = UrlID_WordInfo.get(OriginalWord);
         
-        //Increment the freq of this word and add its new position with the text around it
-        URLIDvalue.addPosition(position, text); 
-        
-        
-        /************************************ Adding to Original HashMap ************************************/
-        //If first time for this stemmmedWord
-        if(stemmedWordIndexer.get(stemmedWord) == null)
-            stemmedWordIndexer.put(stemmedWord, new HashMap<Integer,ArrayList<Float>>());
-        //Getting the UrlID HashMap
-        HashMap<Integer,ArrayList<Float>> URLIdHashMap = stemmedWordIndexer.get(stemmedWord);
-        
-        //If this URL ID isnt stored for this stemmed word
-        if(URLIdHashMap.get(URLID) == null)
+        if(WordsInfoMap.get(URL_ID) == null)
         {
-            URLIdHashMap.put(URLID, new ArrayList<Float>());
-            ArrayList<Float> stemmedWordInfoArray = URLIdHashMap.get(URLID);
-            stemmedWordInfoArray.add((float)1);
-            stemmedWordInfoArray.add((float)1/(float)TotalNumberOfWords);
+            wordInfo wordInfoDetails = new wordInfo(TotalNumberOfWords);
+            wordInfoDetails.addPosition(Position, AroundWordSentence);
+            
+            WordsInfoMap.put(URL_ID, wordInfoDetails);
         }
         else
         {
-            //IF already exists, update the info. Increment Freq and recalc TF
-            ArrayList<Float> stemmedWordInfoArray = URLIdHashMap.get(URLID);
-            stemmedWordInfoArray.set(0, (stemmedWordInfoArray.get(0)+1) );
-            stemmedWordInfoArray.set(1, (stemmedWordInfoArray.get(0)/TotalNumberOfWords) );
+            wordInfo wordInfoDetails = WordsInfoMap.get(URL_ID);
+            wordInfoDetails.addPosition(Position, AroundWordSentence);
         }
     }
+    
+    public void insertRank(String OriginalWord, int URL_ID, Double Rank)
+    {
+        if(OriginalWordRank.get(OriginalWord) == null)
+            OriginalWordRank.put(OriginalWord, new HashMap<>());
+        HashMap<Integer, Double> URL_Rank_Map = OriginalWordRank.get(OriginalWord);
         
+        if(URL_Rank_Map.get(URL_ID) == null)
+            URL_Rank_Map.put(URL_ID, Rank);
+        else    //If exists, add the Rank with the previous one
+        {
+            Double CurrentRank = URL_Rank_Map.get(URL_ID);
+            CurrentRank += Rank;
+            URL_Rank_Map.put(URL_ID, CurrentRank);
+        }
+    }
+    
+    public String cleanTheHTMLText(String HTMLContent, int RemoveStopWordsBool)
+    {
+        //1) Add Space After tags
+        HTMLContent = HTMLContent.replaceAll("<(.*?)>","<$1> ");
+        //1') Remove HTML Tags
+        HTMLContent = Jsoup.parse(HTMLContent).text();
+        
+        //2) Remove All Special Characters
+        HTMLContent = HTMLContent.replaceAll("[^a-zA-Z0-9 ]","");
+        //3) Making All Small Letter
+        HTMLContent = HTMLContent.toLowerCase();
+        
+        //4) Removing Stop Words
+        if(RemoveStopWordsBool != 0)
+            for(String stopWord : stopWordsList)
+                HTMLContent = HTMLContent.replaceAll("\\b" + stopWord + "\\b\\s*", "");     //   \\b gives you the word boundaries.  \\s* sops up any white space on either side of the word being removed 
+
+        //5) Removes Extra Spaces
+        HTMLContent = HTMLContent.trim().replaceAll(" +", " ");   
+        
+        return HTMLContent;
+    }
+    
+    public void calculateRank(Document doc, int urlID)
+    {
+        Elements ListH1 = doc.select("h1,h2,h3,h4,h5,h6, meta[name=description], meta[name=keywords], title");
+        for(Element elementH1: ListH1)
+        {
+            double rankFactor = TagRanks.get(elementH1.tagName());
+            String []wordArray = cleanTheHTMLText(elementH1.toString(), 1).split(" ");  //Splitting to array of words after cleaning
+            for(String word : wordArray)
+                insertRank(word, urlID, rankFactor);
+        }
+    }
+    
+    public void NormalizeRank(int urlID, String URL_Content)
+    {
+        //Removing Stop Words
+        for(String stopWord : stopWordsList)
+            URL_Content = URL_Content.replaceAll("\\b" + stopWord + "\\b\\s*", "");
+        
+        //Removes Extra Spaces
+        URL_Content = URL_Content.trim().replaceAll(" +", " ");  
+        
+        //Taking Unique Words
+        String []words = URL_Content.split(" ");
+        List<String> UniqueWordArray = new ArrayList<String>();
+        for (int i = 0; i < words.length; i++) {
+            if (!(UniqueWordArray.contains(words[i]))) {
+                UniqueWordArray.add(words[i]);
+            }
+        }
+        
+        //Normalizing Rank
+        for(String UniqueWord: UniqueWordArray)
+        {
+            double currentRank = OriginalWordRank.get(UniqueWord).get(urlID);
+            
+            Stemmer stemmer = new Stemmer();
+            String stemmedWord = stemmer.stem(UniqueWord);
+            int wordFreq = IndexInfo.get(stemmedWord).get(UniqueWord).get(urlID).getFreq();
+            
+            currentRank = (double)currentRank/(double)wordFreq;
+            
+            OriginalWordRank.get(UniqueWord).put(urlID, currentRank);
+        }
+    }
+    
     public void takeURL(String URL, int urlID) throws IOException
     {
         /*
@@ -114,38 +182,50 @@ public class Indexer2 {
         Document doc = Jsoup.parse(html);
         */
         Document doc = Jsoup.connect(URL).get();
+        String URL_Content = doc.body().toString();  //.text();  //To get text with Tags
         
         ////////extractImgs(doc);
-        String contentString = doc.body().text();
+                
+        //1) Calculating Rank
+        calculateRank(doc, urlID);
         
-        //1) Making All Small Letter
-        contentString = contentString.toLowerCase();
+        //2) Filter The String out of tags and stop words and special characters.
+        URL_Content = cleanTheHTMLText(URL_Content, 0);
         
-        //2) Removing Stop Words
-        for(String stopWord : stopWordsList)
-            contentString = contentString.replaceAll("\\b" + stopWord + "\\b\\s*", "");     //   \\b gives you the word boundaries.  \\s* sops up any white space on either side of the word being removed 
-        contentString = contentString.trim().replaceAll(" +", " ");     //Removes Extra Spaces
-        
-        /******** 3) Stemming ***********/        
-        String []wordArray = contentString.split(" ");  //Splitting to array of words
-        
+        /******** 3) Stemming + Fixing Others ***********/        
+        String []wordArray = URL_Content.split(" ");  //Splitting to array of words
         Stemmer stemmer = new Stemmer();
-        int TotalNumberOfWord = wordArray.length ,iterator = 0;  //urlID  
+        
+        int TotalNumberOfWord = wordArray.length ,iterator = 0; 
         String stemmedWord, textAroundWord;
         for(String originalWord : wordArray)        //Traverses on each word in the document
         {
-            if(iterator<2)
-                textAroundWord = "";
-            else if (iterator > (wordArray.length - 3) )
-                textAroundWord = "";
-            else
-                textAroundWord = wordArray[iterator-2] + wordArray[iterator-1] + originalWord + wordArray[iterator+1] + wordArray[iterator+2];
+            //If it is a stop word, skip it
+            if(Arrays.asList(stopWordsList).contains(originalWord))
+            {
+                iterator++;
+                continue;
+            }
+            //Preparing the Around Word Sentence.
+            textAroundWord = "";
+            if( (iterator-2) >= 0 )
+                textAroundWord += wordArray[iterator-2] + " ";
+            if( (iterator-1) >= 0 )
+                textAroundWord += wordArray[iterator-1] + " ";
+            textAroundWord += wordArray[iterator];
+            if( (iterator+1) < wordArray.length )
+                textAroundWord += " " + wordArray[iterator+1];
+            if( (iterator+2) < wordArray.length )
+                textAroundWord += " " + wordArray[iterator+2];
             
             stemmedWord = stemmer.stem(originalWord);
                         
-            insertOriginalWord(stemmedWord, originalWord, urlID, TotalNumberOfWord, iterator, textAroundWord);
+            insertIndexInfo(stemmedWord, originalWord, urlID, iterator, textAroundWord, TotalNumberOfWord);
+            insertRank(originalWord, urlID, 1.0);
             iterator++;
         }
+        
+        //NormalizeRank(urlID, URL_Content);    //Divides each rank with the total number of that word
     }
     
     private void extractImgs(Document doc)
@@ -168,47 +248,32 @@ public class Indexer2 {
             //System.out.println("\n\n\n");
             
         }
-    }
-        
-    private String[] stemmer(String contentString)
-    {
-        String []wordArray = contentString.split(" ");  //Splitting to array of words
-        Stemmer stemmer = new Stemmer();
-        
-        int iterator = 0;
-        for(String word : wordArray)        //Stems Each Word
-        {
-            wordArray[iterator] = stemmer.stem(word);
-            iterator++;
-        }
-        
-        return wordArray;
-    }    
+    } 
     
-    public void DisplayStemmedWord()
+    public void DisplayRank()
     {
-        System.out.println("********************************** Stemmed HashMap **********************************");
-        for( String key1 : stemmedWordIndexer.keySet())
+        System.out.println("********************************** Rank HashMap **********************************");
+        for( String key1 : OriginalWordRank.keySet())
         {
             System.out.println(key1+":");
-            HashMap<Integer, ArrayList<Float>> temp1 = stemmedWordIndexer.get(key1);
+            HashMap<Integer, Double> temp1 = OriginalWordRank.get(key1);
             
             for( Integer key2  : temp1.keySet())
             {
-                ArrayList<Float> temp2 = temp1.get(key2);
-                System.out.println("            <" + key2 + ":  [" + temp2.get(0)+" ," + temp2.get(1)+"]>");
+                Double temp2 = temp1.get(key2);
+                System.out.println("            <" + key2 + ":  [" + temp2 + "]>");
             }
         }
     }
     
     public void DisplayOriginalWord()
     {
-        System.out.println("********************************** Original HashMap **********************************");
-        for( String stemmedWord : originalWordIndexer.keySet())
+        System.out.println("********************************** Index Info HashMap **********************************");
+        for( String stemmedWord : IndexInfo.keySet())
         {
             System.out.println(stemmedWord+":");
             
-            HashMap<String,HashMap<Integer, wordInfo>> originalHashMap = originalWordIndexer.get(stemmedWord);
+            HashMap<String,HashMap<Integer, wordInfo>> originalHashMap = IndexInfo.get(stemmedWord);
             for( String originalWord  : originalHashMap.keySet())
             {
                 System.out.println("           "+originalWord+":");
@@ -221,8 +286,11 @@ public class Indexer2 {
                     wordInfo wordinfo = urlIDHashMap.get(urlID);
                     System.out.println("                                 "+wordinfo.getFreq()+", "+ wordinfo.getTF()+", ");
                     
-                    //Img Urls
-                    //ArrayList<String> imgUrls = wordinfo.getImgURL()
+                    HashMap <Integer, String> Position_AroundWordSentence = wordinfo.getPosition();
+                    for(int Key : Position_AroundWordSentence.keySet())
+                    {
+                        System.out.println("                                                       "+Key + ": " + Position_AroundWordSentence.get(Key));
+                    }
                 }
             }
         }
