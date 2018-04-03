@@ -3,12 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/webPage.java</file>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/DomainUrl.java</file>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/Domain.java</file>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/SearchEngine.java</file>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/Consumer.java</file>
-            <file>file:/C:/Users/ahmos/OneDrive/Documents/NetBeansProjects/SearchEngine/src/searchengine/Producer.java</file>
+            <file>file:/B:/semester%207/apt/project%20phase1/final/SearchEngine/src/searchengine/SQLiteDBHelper.java</file>
+            <file>file:/B:/semester%207/apt/project%20phase1/final/SearchEngine/src/searchengine/Consumer.java</file>
+            <file>file:/B:/semester%207/apt/project%20phase1/final/SearchEngine/src/searchengine/SearchEngine.java</file>
+            <file>file:/B:/semester%207/apt/project%20phase1/final/SearchEngine/src/searchengine/Robot.java</file>
         </group>
     </open-files>
 </project-private>

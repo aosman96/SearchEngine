@@ -102,9 +102,11 @@ public class Robot {
             disallowPath = disallowPath.substring(0,commentIndex);
             }
             disallowPath = disallowPath.trim();
+            HtmlTools.absUrl(disallowPath, host);
             disAllowList.add(disallowPath);
             }
             }
+            
             carawler.getRobotTxtFiles().put(host, disAllowList);
             }
             catch(Exception e)
@@ -114,7 +116,7 @@ public class Robot {
             }
             String file = url.getFile();
             for (int i = 0; i < disAllowList.size(); i++) {
-                String disallow = (String) disAllowList.get(i);
+                String disallow =  disAllowList.get(i).toString();
                         if (file.startsWith(disallow)) {
                                         return false;
                                                             }
@@ -122,6 +124,7 @@ public class Robot {
         }
         }catch (MalformedURLException ex) {
         //    Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
+        System.out.println("robot error");
         return false ;
         }
     return true;

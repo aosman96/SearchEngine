@@ -5,11 +5,15 @@
  */
 package searchengine;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,26 +23,24 @@ import javafx.util.Pair;
  *
  * @author ahmos
  */
-class Carawler{
-            //this is the links visited
-            Set<webPage> pagesVisited = new HashSet<webPage>() ;
-            //this is the links is going to be visited
-            List<webPage> pagesToVisit = new LinkedList<webPage>();
-            // html pages of the visited links 
-           // List<HtmlPage> pages = new LinkedList<HtmlPage>(); //da ana haselooooo we ha5leha gowa el pages  
-            //storing the rank of each page 
-          //  HashMap<String,ArrayList<Integer>> linksToPage=  new HashMap<String,ArrayList<Integer>>();
-               HashMap<String,ArrayList> robotTxtFiles = new HashMap<String,ArrayList>();
-      //     public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
+class Carawler {
+    //this is the links visited
 
-   
+    Set<webPage> pagesVisited = new HashSet<webPage>();
+    //this is the links is going to be visited
+    Set<webPage> pagesToVisit = new HashSet<webPage>();
+    // html pages of the visited links 
+    // List<HtmlPage> pages = new LinkedList<HtmlPage>(); //da ana haselooooo we ha5leha gowa el pages  
+    //storing the rank of each page 
+    //  HashMap<String,ArrayList<Integer>> linksToPage=  new HashMap<String,ArrayList<Integer>>();
+    HashMap<String, ArrayList> robotTxtFiles = new HashMap<String, ArrayList>();
+    //     public HashMap <String,Integer> domaindepth = new HashMap<String,Integer>();
 
-            int numberOfPages = 50;
+    int numberOfPages = 3000;
 
- //   public List<HtmlPage> getPages() {
-   //     return pages;
+    //   public List<HtmlPage> getPages() {
+    //     return pages;
     //}
-
     public int getNumberOfPages() {
         return numberOfPages;
     }
@@ -47,18 +49,12 @@ class Carawler{
         this.numberOfPages = numberOfPages;
     }
 
-   // public void setPages(List<HtmlPage> pages) {
+    // public void setPages(List<HtmlPage> pages) {
     //    this.pages = pages;
     //}
-         
-
-   
-            
     public HashMap<String, ArrayList> getRobotTxtFiles() {
         return robotTxtFiles;
     }
-
-    
 
     public Set<webPage> getPagesVisited() {
         return pagesVisited;
@@ -68,115 +64,175 @@ class Carawler{
         this.pagesVisited = pagesVisited;
     }
 
-    public List<webPage> getPagesToVisit() {
+    public Set<webPage> getPagesToVisit() {
         return pagesToVisit;
     }
 
-    public void setPagesToVisit(List<webPage> pagesToVisit) {
+    public void setPagesToVisit(Set<webPage> pagesToVisit) {
         this.pagesToVisit = pagesToVisit;
     }
-    public boolean isInVisited(webPage link)
-    {
-     for( webPage w :pagesVisited)
-    {
-    if (w.equals(link))
-    {
-        System.out.println("this link comes before : "+ link.Url);
-    return true;
+
+    public boolean isInVisited(webPage link) {
+        for (webPage w : pagesVisited) {
+            if (w.equals(link)) {
+                System.out.println("this link comes before : " + link.Url);
+                return true;
+            }
+
+        }
+        return false;
     }
     
+
+    public boolean updateVistedList(webPage link, webPage parent) {
+
+        for (webPage w : pagesVisited) {
+            if (w.getUrl() != null && link != null) {
+                if (w.getUrl().equals(link.getUrl())) {
+                    w.getParentPages().add(parent);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
-     return false ;
+
+    public boolean updateToVistedList(webPage link, webPage parent) {
+
+        for (webPage w : pagesToVisit) {
+            if (w.getUrl().equals(link.getUrl())) {
+                w.getParentPages().add(parent);
+                return true;
+            }
+        }
+        return false;
     }
-    public boolean updateVistedList(webPage link ,webPage parent)
-    {
+
+    void CalculateRank() {
+        for (webPage w : this.pagesVisited) {
+            w.CalculateRank();
+        }
+    }
     
-    for( webPage w :pagesVisited)
+     static void  StartCarawling() throws InterruptedException
     {
-        if(w.getUrl() != null && link != null)
-    if (w.equals(link))
-    {
-   w.getParentPages().add(parent);
-    return true;
+  
     }
-    }
-    return false ;
-    }
-    
-    public boolean updateToVistedList(webPage link,webPage parent)
-    {
-    
-    for( webPage w :pagesToVisit)
-    {
-    if (w.equals(link))
-    {
-    w.getParentPages().add(parent);
-    return true;
-    }
-    }
-    return false ;
-    }            
 }
+
 public class SearchEngine {
+
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws InterruptedException {
-        // TODO code application logic here
-  //  while(true)
-    {
-            Carawler carawler =new Carawler() ;
-            webPage webpage1 = new webPage();
-            webpage1.setUrl("https://wikipedia.org/");
-            webpage1.setRank(1/4);
-            webPage webpage2 = new webPage();
-            webpage2.setUrl("https://yahoo.com");
-            webpage2.setRank(1/4);
-            webPage webpage3 = new webPage();
-            webpage3.setUrl("https://twitter.com");
-            webpage3.setRank(1/4);
-            webPage webpage4 = new webPage();
-            webpage4.setUrl(" https://youtube.com/testtube");
-            webpage4.setRank(1/4);
-            
-            
-            
-             carawler.getPagesToVisit().add(webpage1);
-                carawler.getPagesToVisit().add(webpage2);
-                   carawler.getPagesToVisit().add(webpage3);
-                    carawler.getPagesToVisit().add(webpage4);
-            Thread producer = new Thread(new Producer(carawler));
-            Thread producer2 = new Thread(new Producer(carawler));
-           Thread producer3 = new  Thread(new Producer(carawler));
-                      Thread producer4 = new  Thread(new Producer(carawler));
-       producer.start();
-           Thread.sleep(100);
-           producer2.start();
-                       Thread.sleep(100);
-            producer3.start();
-                       Thread.sleep(100);
-              producer4.start();
-        try {
-              producer.join();
-              producer2.join();
-            producer3.join();
-            producer4.join();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
-        }
-         System.out.println("done");
+       
+        
       
-          System.out.println("SIZEEEEEEEEEEEEEEEEEEEE 2 " + carawler.getPagesVisited().size());
-            for (webPage w :carawler.pagesVisited)
-            {
-            System.out.println( w.Url+ "     i have "+w.getParentPages().size()+" Pointing to me and " + w.getChildPages().size()+" pointing to them" + "the last date modified= "+w.getLastModification());
-            
-            }
-          //  webPage e ;
-            //        e = carawler.getPagesVisited().iterator().next();
+
+Scanner reader = new Scanner(System.in);  // Reading from System.in
+System.out.println("Enter a number: ");
+int n = reader.nextInt(); // Scans the next token of the input as an int.
+//once finished
+reader.close();
+        
+      while(true)
+      {
+        SQLiteDBHelper sqlManager = new SQLiteDBHelper(1,"",1);
+        Carawler carawler = new Carawler();
+        //sqlManager.Backup();
+        sqlManager.Restore();
+        carawler.setPagesToVisit(sqlManager.GetPagesToVisit());
+        carawler.setPagesVisited(sqlManager.GetPagesVisited());
+        carawler.setNumberOfPages(carawler.getNumberOfPages()+carawler.getPagesVisited().size());  // to update the new number we want to reach as if we first carwal 5000 next the number will be 100000
+        System.out.println("carawel start "+carawler.getPagesToVisit().size());
+        for (int i=0 ; i < n ; i++)
+        {
+        Thread producer = new Thread(new Producer(carawler));
+        producer.start();
+        }
+        /*
+        Thread producer = new Thread(new Producer(carawler));
+        Thread producer2 = new Thread(new Producer(carawler));
+        Thread producer3 = new Thread(new Producer(carawler));
+        Thread producer4 = new Thread(new Producer(carawler));
+        producer.start();
+        producer2.start();
+        producer3.start();
+        producer4.start();
+        */
+        int count = carawler.getPagesVisited().size()+ 2500;
+        int index1 = 0;
+        int index2 = 0;
+        while (true) {
+            synchronized (carawler) {
+                if (carawler.getPagesVisited().size() >= carawler.getNumberOfPages()) {
+                    System.out.println("main is going to finish every thing right now");
+                    carawler.CalculateRank();
+                    List<webPage> listtovisit = new ArrayList<>(carawler.getPagesToVisit());
+                    Set<webPage> subSet = new HashSet<>(listtovisit.subList(index1, carawler.getPagesToVisit().size() ));
+                    index1 = carawler.getPagesToVisit().size();
+                    List<webPage> listvisited = new ArrayList<>(carawler.getPagesVisited());
+                    Set<webPage> subSet2 = new HashSet<>(listvisited.subList(index2, carawler.getPagesVisited().size() ));
+                    index2 = carawler.getPagesVisited().size();
+                    //insert into database and backup we nebreak 
+                
+                    try {
+                        sqlManager.UpdatePagesToVisit(subSet2);
+                        sqlManager.UpdateContentInLinksCountOutLinksCount(carawler.getPagesVisited());
+                        sqlManager.UpdateRanks(carawler.getPagesVisited());
+                        sqlManager.InsertRobots(carawler.getRobotTxtFiles());
+                        sqlManager.InsertPagesToVisitBatch(subSet);
+                        sqlManager.Resetvistied();
+                     
+                    } catch (SQLException ex) {
+                        Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                     
-          //  System.out.println(e.getPage().getHtml());
+                    
+                    sqlManager.Backup();
+                    System.out.println("================== FINISHED LOADING ======================");
+                    break;
+                }
+                if (carawler.getPagesVisited().size() > count) {
+                    // peridodic insert
+                      System.out.println("================== PERIODIC INSERT ======================");
+                    List<webPage> listtovisit = new ArrayList<>(carawler.getPagesToVisit());
+                    Set<webPage> subSet = new HashSet<>(listtovisit.subList(index1, carawler.getPagesToVisit().size() ));
+                    index1 = carawler.getPagesToVisit().size();
+                    List<webPage> listvisited = new ArrayList<>(carawler.getPagesVisited());
+                    Set<webPage> subSet2 = new HashSet<>(listvisited.subList(index2, carawler.getPagesVisited().size() ));
+                    index2 = carawler.getPagesVisited().size();
+
+                    try {
+                           sqlManager.UpdatePagesToVisit(subSet2);
+                        sqlManager.InsertRobots(carawler.robotTxtFiles);
+                        sqlManager.InsertPagesToVisitBatch(subSet);
+                     
+                        
+                    } catch (SQLException ex) {
+                        Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    
+                    count += 2500;
+                    sqlManager.Backup();
+                     System.out.println("====================================================== PERIODIC INSERT ==================================");
+                    
+                } else {
+                     System.out.println("i am going to sleeep dudeees");
+                     carawler.notifyAll();
+                    carawler.wait();
+                }
+            }
+        }
+        
+        }
+      }
     }
-    }
-}
+          
+
+    //}
+
+

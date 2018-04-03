@@ -7,16 +7,39 @@ package searchengine;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /**
  *
  * @author ahmos
  */
 public class webPage {
-    float Rank ;
-    LinkedList<webPage> ParentPages = new LinkedList<webPage>();
-    LinkedList<webPage> childPages = new LinkedList<webPage>();
-    String lastModification ;
+    float Rank ; // to recawrler 
+    int id ; //for database
+    LinkedList<webPage> ParentPages = new LinkedList<webPage>(); // pages pointing to me 
+    LinkedList<webPage> childPages = new LinkedList<webPage>(); // pages i am pointing to them
+    String lastModification ;  // date of last modification
+    int inLinksCount , outLinksCount ;
+
+    public int getInLinksCount() {
+        return inLinksCount;
+    }
+
+    public void setInLinksCount(int inLinksCount) {
+        this.inLinksCount = inLinksCount;
+    }
+
+    public int getOutLinksCount() {
+        return outLinksCount;
+    }
+
+    public void setOutLinksCount(int outLinksCount) {
+        this.outLinksCount = outLinksCount;
+    }
+  
 
     public String getLastModification() {
         return lastModification;
@@ -26,13 +49,13 @@ public class webPage {
         this.lastModification = lastModification;
     }
     String Url;
-    HtmlPage page ;
+    String page ;
 
-    public HtmlPage getPage() {
+    public String getPage() {
         return page;
     }
 
-    public void setPage(HtmlPage page) {
+    public void setPage(String page) {
         this.page = page;
     }
     
@@ -74,7 +97,37 @@ public class webPage {
     public void setUrl(String Url) {
         this.Url = Url;
     }
-
+    public void CalculateRank()
+    {
+        if(page==null)
+        {
+            Rank=0 ;
+            return ;
+        }
+      Document doc =  Jsoup.parse(page);
+        if( ! doc.select("meta[name=description]").isEmpty() )
+        {
+            //to check if it has meta data and this meta data has the word news
+            if(doc.select("meta[name=description]").first().attr("content").toLowerCase().contains("news") == true)
+            {
+                Rank+=3 ;
+            }
+             if(doc.select("meta[name=description]").first().attr("content").toLowerCase().contains("sports") == true)
+            {
+                Rank+=3;
+            }
+             if(lastModification!=null)
+             {
+             Rank +=10 ;
+             }
+            
+            
+            
+        }
+    
+            Rank+= this.getParentPages().size()/10 * 6 ;
+            Rank+= this.getChildPages().size()/10 * 3;
+    }
 @Override
 public boolean equals(Object o) {
 

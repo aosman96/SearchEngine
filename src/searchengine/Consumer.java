@@ -5,16 +5,18 @@
  */
 package searchengine;
 
-import searchengine.DomainUrl;
-import searchengine.Hasher;
-import searchengine.HtmlPage;
 import searchengine.HtmlTools;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.Connection;
@@ -28,62 +30,111 @@ import org.jsoup.select.Elements;
  *
  * @author ahmos
  */
-public class Consumer   {
+public class Consumer {
 
-    private List<webPage> anchors = new LinkedList<webPage>();
-    private HtmlPage page;
+    private Set<webPage> anchors = new HashSet<webPage>();
+    private String page;
     private Connection connection;
     private Response response;
     private String userAgent;
-    private  Producer producer;
+    private Producer producer;
 
-    public Consumer(String userAgent, Producer producer ) {
+    public Consumer(String userAgent, Producer producer) {
         this.userAgent = userAgent;
-        this.producer = producer ;
+        this.producer = producer;
     }
 
     public boolean Start(webPage crawlDomain) {
 
-        DomainUrl domainUrl = new DomainUrl(Hasher.toSha256(crawlDomain.Url), crawlDomain.Url);
-
         try {
-            connection = Jsoup.connect(domainUrl.getDomainUrl()).userAgent(userAgent)
+
+            // connecting to the website 
+            connection = Jsoup.connect(crawlDomain.Url).userAgent(userAgent)
                     .referrer("http://www.google.com").timeout(100000).ignoreHttpErrors(true);
-            response = connection.execute();
-            if (response.statusCode() % 100 == 4) {
+            try {
+
+                if (connection.execute().url().getHost() == null) {
+                    return false; // if it has wrong host or it's host is null we will add it as bad link
+                }
+                response = connection.execute();
+            } catch (IllegalArgumentException ex) {
                 return false;
             }
-            String contentType ;
-           
+            if (response.statusCode() % 100 == 4) {   // status code with 4xx will be added also as bad links so we return false if we have it 
+                return false;
+            }
+            if (response.statusCode() == HttpURLConnection.HTTP_MOVED_PERM) {
+                String url = response.header("location");
+                url = HtmlTools.absUrl(url);
+                webPage temp = new webPage();
+                temp.setUrl(url);
+                temp.setRank(crawlDomain.getRank());
+                temp.setParentPages((LinkedList<webPage>) crawlDomain.getParentPages());
+                temp.setChildPages(crawlDomain.getChildPages());
+                anchors.add(temp);
+                return false;
+
+            }
+           else if (response.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+                String url = response.header("location");
+                url = HtmlTools.absUrl(url);
+                webPage temp = new webPage();
+                temp.setUrl(url);
+                temp.setRank(crawlDomain.getRank());
+                temp.setParentPages((LinkedList<webPage>) crawlDomain.getParentPages());
+                temp.setChildPages(crawlDomain.getChildPages());
+                anchors.add(temp);
+                anchors.add(crawlDomain);
+                return true;
+
+            }
+           else if (response.statusCode() == HttpURLConnection.HTTP_GATEWAY_TIMEOUT) {
+                anchors.add(crawlDomain);
+                return true;
+
+            }
+
+            String contentType;
+
             contentType = response.contentType();
-                String LastModified =response.header("Last-Modified");
-            if (contentType == null )
-                    return false ;
-            
-            if (contentType.contains("text/html")) {
-                Document doc = connection.get();
-                page = new HtmlPage(doc.html(), domainUrl, new Date());
-                
+            String LastModified = response.header("Last-Modified");                // getting the last modified data for recarwling in the carteria 
+            if (contentType == null) {
+                return false;
+            }
+
+            if (contentType.contains("text/html")) {                                 // to make sure it is html document 
+                Document doc;
+                try {
+                    doc = connection.get();
+                } catch (Exception e) {
+                    return false;
+
+                }
+                page = doc.html();
 
                 Elements hrefs = doc.select("a");
-                synchronized (this.producer.getCarawler())
-                {
-                
-                for (Element e : hrefs) {
-                    String anchor = e.attr("href").trim();
-                    anchor = HtmlTools.fixUrl(anchor, domainUrl); //de 3lshan lw nafs el page teb2a et7t mara wa7da
-                    if(anchor!="" && anchor!=null)
-                    {
-                    webPage temp = new webPage() ;
-                    temp.setUrl(anchor);
-                  if( ! (producer.getCarawler().updateToVistedList(temp,crawlDomain) ||
-                    producer.getCarawler().updateVistedList(temp,crawlDomain)))
-                      temp.Rank=0 ;
-                      temp.ParentPages.add(crawlDomain);
-                      anchors.add(temp);
+                synchronized (this.producer.getCarawler()) {
 
-                   
-                  /*  if( producer.getCarawler().getPagesVisited().contains()!= null)
+                    for (Element e : hrefs) {
+                        String anchor = e.attr("href").trim();
+                        try {
+                            anchor = HtmlTools.absUrl(anchor, crawlDomain.Url); //de 3lshan lw nafs el page teb2a et7t mara wa7da
+                        } catch (Exception ee) {
+                            anchor = null;
+                        }
+                        if (anchor == null) {
+                            continue;
+                        }
+                        if (anchor != "" && anchor != null) {
+                            webPage temp = new webPage();
+                            temp.setUrl(anchor);
+                            if (!(producer.getCarawler().updateVistedList(temp, crawlDomain))) {
+                                temp.Rank = 0;
+                                temp.ParentPages.add(crawlDomain);
+                                anchors.add(temp);
+                            }
+
+                            /*  if( producer.getCarawler().getPagesVisited().contains()!= null)
                         producer.getCarawler().linksToPage.get(anchor).set(0, producer.getCarawler().linksToPage.get(anchor).get(0)+1);
                     else
                     {
@@ -92,8 +143,7 @@ public class Consumer   {
                     producer.getCarawler().linksToPage.get(anchor).add(0);
                     
                     }*/
-                    
-                    }/*
+                        }/*
                      if( producer.getCarawler().linksToPage.get(crawlDomain)== null)
                      {
                      producer.getCarawler().linksToPage.put(crawlDomain, new ArrayList <Integer>());
@@ -103,29 +153,29 @@ public class Consumer   {
                      }
                      else
                     producer.getCarawler().linksToPage.get(crawlDomain).set(1, hrefs.size());*/
+
+                    }
+
+                    crawlDomain.setLastModification(LastModified);
+                    System.out.println(LastModified);
                 }
-                                      crawlDomain.setLastModification(LastModified);
-                      System.out.println(LastModified);
-                }
-                        return true;
+                return true;
             } else {
                 return false;
             }
         } catch (IOException ex) {
-            // 3lshan lw 4xx eb2a mayt3mlosh save lw 5xx et3mlo save we ab2a agelo ba3den
+            return false;
+            // 3lshan lw portocal 3'lt
         }
-return false ;
+
     }
 
-
-    public List<webPage> getLinks() {
+    public Set<webPage> getLinks() {
         return this.anchors;
     }
-    
 
-    public HtmlPage getpage() {
+    public String getpage() {
         return page;
     }
-
 
 }
